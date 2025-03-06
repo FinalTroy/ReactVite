@@ -1,34 +1,43 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
+import {MouseEvent, useEffect, useState} from 'react'
 import './App.css'
+import {ButtonComponent} from "./components/ButtonComponent.tsx";
+import {Language} from "./types/button.ts";
+import translates from "./translates/translates.json"
+import {DummyResponse} from "./types/common.ts";
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [language , setLanguage] = useState<Language>(Language.CZ);
+
+  /** TODO: v effectu bych resil nacitani dat z API */
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await fetch('/api/dummy/translates');
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        const data: DummyResponse = await response.json();
+        return data;
+      }
+      catch (error) {
+        console.log('Chyba: ', error);
+      }
+    }
+    fetchData().then(data => console.log(data));
+  }, [])
+
+  /** Handler na click buttonu */
+  function handleClick(e: MouseEvent<HTMLButtonElement>) {
+    e.preventDefault();
+    setLanguage(prev => prev === Language.CZ ? Language.ENG : Language.CZ);
+  }
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
+      <>
+        <p>{language}</p>
+        <ButtonComponent onClick={handleClick} value={translates[`text.${language}`]} />
+      </>
+
   )
 }
 
